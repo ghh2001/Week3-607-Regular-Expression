@@ -1,0 +1,141 @@
+---
+title: "607 Assignment3- String  "
+author: "Hui (Gracie) Han
+date: "Sep16, 2018"
+output:  html_document:  ---
+Please deliver links to an R Markdown file (in GitHub and rpubs.com) with solutions to problems 3 and 4 from chapter 8 of Automated Data Collection in R.  Problem 9 is extra credit.  You may work in a small group, but please submit separately with names of all group participants in your submission.
+Problem 3. Copy the introductory example. The vector name stores the extracted names.
+[1] "Moe Szyslak" "Burns, C. Montgomery" "Rev. Timothy Lovejoy"
+[4] "Ned Flanders" "Simpson, Homer" "Dr. Julius Hibbert"
+(a) Use the tools of this chapter to rearrange the vector so that all elements conform to
+the standard first_name last_name.--will work on 3a after completed 3b and 3C
+(b) Construct a logical vector indicating whether a character has a title (i.e., Rev. and
+Dr.).----- will work on b first, then do a, which makes more logical sense
+(c) Construct a logical vector indicating whether a character has a second name.
+
+
+first, set the library and load the original data
+```{r}
+library(tidyverse)
+library (stringr)
+library(stringi)
+getwd()
+```
+
+```{r}
+NamesInput <-"555-1239Moe Szyslak(636) 555-0113Burns, C. Montgomery555-6542Rev. Timothy Lovejoy555 8904Ned Flanders636-555-3226Simpson, Homer5553642Dr. Julius Hibbert"
+NamesInput
+```
+Do question 3B first 
+3b) Construct a logical vector indicating whether a character has a title (i.e., Rev. and Dr.)
+# Get all the names as they are first
+```{r}
+Names1<-unlist(str_extract_all(NamesInput, "[[:alpha:]., ]{2,}"))
+Names1
+```
+
+```{r}
+NamesWtitlesLogic = str_detect(Names1, "Rev.|Dr.")
+NamesWtitlesLogic
+```
+3c) Construct a logical vector indicating whether a character has a second name.
+to solve this: detect a name that has space in between, then that is the second name
+```{r}
+Names1
+NamesSecond <- str_detect (Names1, "[A-Z]{1}\\.")
+NamesSecond
+```
+3C) Construct a logical vector indicating whether a character has a second name. To solve this, we do a word count of the strings.  All regular namesshould have 2 strings.  The 2nd named string have three strings, that's the answer.  
+```{r}
+## remove the titles first
+NameWOtitle <- str_replace (Names1,"Rev.|Dr.", replacement = "" )
+NameWOtitle
+# count the strings
+NamesCount <-str_count(NameWOtitle, "\\w+")
+NamesCount
+```
+As seen from last run, only the 2nd element have 3 strings (2nd name), construct a logical vector for that
+```{r}
+NamesCountGT2 <- str_detect (NamesCount, "3")
+NamesCountGT2
+```
+NExt, do 3a, (a) Use the tools of this chapter to rearrange the vector so that all elements conform to
+the standard first_name last_name.
+## remove the titles, replace the title with space
+```{r}
+# str_replace(string, pattern, replacement)
+NameWOtitle <- str_replace (Names1,"Rev.|Dr.", replacement = "" )
+NameWOtitle
+```
+
+Next, for Burns, C. MOngomery, the middle nmae need to be removed
+for two people (LastName, FirstName), their name order need to be re-arranged
+remove middle names -
+
+```{r}
+namesWOMidName <- str_replace(NameWOtitle, "\\s[A-z]\\. ", " ")
+### pattern: \-- match a space character, [A-z]--followed by a chacter, -- \ followed by a coma (,)
+#  replace them with a nothing
+namesWOMidName
+```
+Split those names("Burns, MOntgemety" & "Simpson,HOmer") separated by a comma into two vectors, trim, and reverse order.
+```{r}
+ splitnameTemp1 <- sapply(str_split(namesWOMidName, ","), str_trim)
+ splitnameTemp1
+
+ splitnameTemp2 <- sapply(splitnameTemp1,rev)
+ splitnameTemp2
+
+```
+ Then paste the vectors together with a space in between. Then turn the list back into a vector
+```{r}
+for (i in 1:length(namesWOMidName)) {
+  splitnameTemp2[i]<- paste(unlist(splitnameTemp2[i]), collapse = " ")  
+  }
+ 
+splitname7 <- unlist(splitnameTemp2)
+splitname7
+```
+
+4. Describe the types of strings that conform to the following regular expressions and
+construct an example that is matched by the regular expression.
+(a) [0-9]+\\$
+this string extracts any number 0-9 at the end of string ($)
+
+```{r}
+String4a <- c("$243464","9090$09090")
+string4aE <- str_extract(String4a,"[0-9]+\\$")
+string4aE
+```
+
+(b) \\b[a-z]{1,4}\\b
+this describes any lower case letter [a-z] between 1 to 4 charcters long {1,4}, with blanks (\\b) before and after 
+```{r}
+String4b <- c("ty"," z8B98$"," c "," 8SDF ","asdfg "," ssas ")
+String4bE <- str_extract(String4b,"\\b[a-z]{1,4}\\b")
+String4bE
+```
+(c) .*?\\.txt$
+this evaluates strings with .txt at end ($)
+```{r}
+String4c <- c("Mydoc.doc", "Mydoc.txt", ".txt", ".xls")
+String4cE <- str_extract (String4c, ".*?\\.txt$")
+String4cE
+```
+
+(d) \\d{2}/\\d{2}/\\d{4}
+this evaluates the patten with two forward slash (such as date DD/MM/YYYY format) with exactly 2 , 2, 4 characters long
+```{r}
+String4d <-  c("11/10/2008","12/2/2008 ","12/12\1999"," asdf ","2/12/2010 ", "01/01/99" )
+String4dE <- str_extract (String4d, '\\d{2}/\\d{2}/\\d{4}')
+String4dE
+```
+
+(e) <(.+?)>.+?</\\1>
+this evaluates any <> with a forward slash within
+```{r}
+String4e <- c("<tag> myname/>","<tag>something</tag>")
+String4eE <- str_extract(String4e,"<(.+?)>.+?</\\1>")
+String4eE
+
+```
